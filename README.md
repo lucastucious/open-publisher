@@ -1,3 +1,4 @@
+**Note:** Updates are normally every day or two, but for now they are coming less frequently whilst we are working on the V5 client - because it's gonna be a big update we aren’t going to be updating the client in bits, it will be the jump from 4.x.x to 5
 <p align="center">
   <img src="docs/screenshots/logo.jpeg" alt="Open Publisher Logo" width="300"/>
 </p>
