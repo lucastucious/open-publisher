@@ -72,6 +72,16 @@
                 console.error("Open Publisher: saveDocument() is not accessible.");
             }
         }
+
+        // SAVE AS: Ctrl+Shift+S / Cmd+Shift+S
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && e.shiftKey) {
+            e.preventDefault(); 
+            if (typeof window.saveDocumentAs === 'function') {
+                window.saveDocumentAs();
+            } else {
+                console.error("Open Publisher: saveDocumentAs() is not accessible.");
+            }
+        }
         
         // OPEN: Ctrl+O / Cmd+O
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'o' && !e.shiftKey) {

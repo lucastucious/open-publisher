@@ -33,6 +33,22 @@ function saveDocument() {
     a.click();
 }
 
+window.saveDocumentAs = function() {
+    const currentTitle = document.getElementById('doc-title').innerText || 'Untitled Document';
+    const html = `
+        <div style="margin-bottom:15px; font-size:14px; color:#555;">
+            Enter a new name for your document.
+        </div>
+        <input type="text" id="save-as-filename" class="op-input-field" value="${currentTitle}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-family:inherit;" />
+    `;
+    DialogSystem.show('Save As', html, () => {
+        const input = document.getElementById('save-as-filename');
+        if (input && input.value.trim() !== '') {
+            document.getElementById('doc-title').innerText = input.value.trim();
+            saveDocument();
+        }
+    }, false, 'Save As');
+};
 
 function openDocument() { document.getElementById('file-open').click(); }
 
