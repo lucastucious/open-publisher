@@ -433,7 +433,7 @@ function uploadAndConvertDoc(file) {
         formData.append('docFile', file); 
 
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'https://determine-regardless-passage-occurring.trycloudflare.com/api/convert-doc', true); 
+        xhr.open('POST', 'https://pork-continuity-lamb-conservative.trycloudflare.com/api/convert-doc', true); 
 
         xhr.upload.onprogress = function(e) {
             if (e.lengthComputable) {
@@ -1034,7 +1034,7 @@ function uploadAndConvertPub(file) {
         formData.append('pubFile', file); 
 
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'https://determine-regardless-passage-occurring.trycloudflare.com/api/convert-pub', true); 
+        xhr.open('POST', 'https://pork-continuity-lamb-conservative.trycloudflare.com/api/convert-pub', true); 
 
         xhr.upload.onprogress = function(e) {
             if (e.lengthComputable) {
