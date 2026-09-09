@@ -25,7 +25,10 @@ function setPageSize(format) {
     // Auto-update the UI format icon immediately
     if (typeof window.setPageFormatIcon === 'function') window.setPageFormatIcon(format);
     
-    pushHistory();
+    if (typeof state !== 'undefined' && state.pages && state.pages.length > 0) {
+        pushHistory();
+    }
+    
     const sizeDrop = document.getElementById('size-dropdown');
     if(sizeDrop) sizeDrop.style.display = 'none';
 }

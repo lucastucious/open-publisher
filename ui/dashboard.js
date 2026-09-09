@@ -126,6 +126,7 @@ window.DashboardSystem = {
         state.pages = [];
         state.history = [];
         state.historyIndex = -1;
+        state.currentPageIndex = 0;
         
         if (size === 'Custom') {
             changeSize(); // Native function

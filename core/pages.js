@@ -176,28 +176,49 @@ function addNewPage() {
         state.pages[state.currentPageIndex] = serializeCurrentPage();
     }
 
-    // Automatically detect optimal default page size based on user's region
-    let defaultW = '794px'; // A4 default
+    let defaultW = '794px'; 
     let defaultH = '1123px';
-    try {
-        const locale = navigator.language || navigator.userLanguage || '';
-        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-        const letterRegions = ['en-US', 'es-MX', 'en-CA', 'fr-CA', 'es-CO', 'es-VE', 'es-CL', 'en-PH', 'es-PR', 'en-BZ'];
+    
+    // Inherit from current page if one exists
+    if (state.pages.length > 0) {
+        defaultW = state.pages[state.currentPageIndex].width || defaultW;
+        defaultH = state.pages[state.currentPageIndex].height || defaultH;
         
-        let isLetter = letterRegions.includes(locale) || locale.endsWith('-US') || locale.endsWith('-CA') || locale.endsWith('-MX');
+        // Convert to single page width if we're in spread mode so logic below can handle doubling correctly
+        if (state.isSpreadMode) {
+            defaultW = (parseInt(defaultW) / 2) + 'px';
+        }
+    } else {
+        // Automatically detect optimal default page size based on user's region
+        try {
+            const locale = navigator.language || navigator.userLanguage || '';
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+            const letterRegions = ['en-US', 'es-MX', 'en-CA', 'fr-CA', 'es-CO', 'es-VE', 'es-CL', 'en-PH', 'es-PR', 'en-BZ'];
+            
+            let isLetter = letterRegions.includes(locale) || locale.endsWith('-US') || locale.endsWith('-CA') || locale.endsWith('-MX');
+            
+            if (tz.startsWith('Europe/') || tz.startsWith('Australia/') || tz.startsWith('Africa/') || tz.startsWith('Asia/')) {
+                if (tz !== 'Asia/Manila') {
+                    isLetter = false;
+                }
+            }
+            
+            if (isLetter) {
+                defaultW = '816px'; // US Letter
+                defaultH = '1056px';
+            }
+        } catch(e) {}
         
-        // Timezone override: UK users often have en-US browsers. Timezone gives physical location.
-        if (tz.startsWith('Europe/') || tz.startsWith('Australia/') || tz.startsWith('Africa/') || tz.startsWith('Asia/')) {
-            if (tz !== 'Asia/Manila') {
-                isLetter = false;
+        // If the paper element was already explicitly sized (e.g. by Dashboard), respect that over defaults
+        const paperElem = document.getElementById('paper');
+        if (paperElem && paperElem.style.width && paperElem.style.height) {
+            defaultW = paperElem.style.width;
+            defaultH = paperElem.style.height;
+            if (state.isSpreadMode) {
+                defaultW = (parseInt(defaultW) / 2) + 'px';
             }
         }
-        
-        if (isLetter) {
-            defaultW = '816px'; // US Letter
-            defaultH = '1056px';
-        }
-    } catch(e) {}
+    }
 
     let pageW = defaultW;
     let initialElements = [];
