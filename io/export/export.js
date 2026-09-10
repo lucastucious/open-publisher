@@ -1,5 +1,10 @@
+window.emitIPCExportEvent = function(type, payload = 0) {
+    try { window.postMessage({ type: type, payload: payload }, '*'); } catch(e) {}
+};
+
 window.exportAsHTML = async function(opts = {}) {
     if (typeof opts === 'boolean') opts = { seamless: opts };
+    window.emitIPCExportEvent('OP_EXPORT_START');
     // Save current page state first
     state.pages[state.currentPageIndex] = serializeCurrentPage();
     
@@ -30,6 +35,7 @@ window.exportAsHTML = async function(opts = {}) {
             const p = document.getElementById('html-export-progress');
             if (s) s.innerText = msg;
             if (p) p.style.width = pct + '%';
+            window.emitIPCExportEvent('OP_EXPORT_PROGRESS', pct);
         };
         
         setStatus('Scanning typography...', 15);
@@ -325,9 +331,11 @@ ${pagesHTML}
         a.download = docTitle.replace(/\s+/g, '_') + '.html';
         a.click();
         
+        window.emitIPCExportEvent('OP_EXPORT_COMPLETE');
         setTimeout(() => { if (typeof DialogSystem !== 'undefined') DialogSystem.close(); }, 1200);
         
     } catch (err) {
+        window.emitIPCExportEvent('OP_EXPORT_COMPLETE');
         if (typeof DialogSystem !== 'undefined') {
             DialogSystem.close();
             DialogSystem.alert('Export Error', 'Failed to export HTML: ' + err.message);
@@ -343,6 +351,8 @@ window.packAndGo = async function() {
         if(typeof DialogSystem !== 'undefined') DialogSystem.alert('Error', 'Zip library not loaded. Check your connection.');
         return;
     }
+    
+    window.emitIPCExportEvent('OP_EXPORT_START');
     
     // UI Progress Indicator
     const progressHtml = `
@@ -379,6 +389,7 @@ window.packAndGo = async function() {
         // 2. Extract Base64 Images
         if(document.getElementById('pack-status')) document.getElementById('pack-status').innerText = 'Extracting Images...';
         if(document.getElementById('pack-progress')) document.getElementById('pack-progress').style.width = '30%';
+        window.emitIPCExportEvent('OP_EXPORT_PROGRESS', 30);
         await new Promise(r => setTimeout(r, 50));
         
         let imgCount = 1;
@@ -392,6 +403,7 @@ window.packAndGo = async function() {
         // 3. Scan for Typography
         if(document.getElementById('pack-status')) document.getElementById('pack-status').innerText = 'Compiling Fonts...';
         if(document.getElementById('pack-progress')) document.getElementById('pack-progress').style.width = '60%';
+        window.emitIPCExportEvent('OP_EXPORT_PROGRESS', 60);
         await new Promise(r => setTimeout(r, 50));
         
         let usedFonts = new Set();
@@ -417,13 +429,21 @@ window.packAndGo = async function() {
         // 4. Save Native Project File
         if(document.getElementById('pack-status')) document.getElementById('pack-status').innerText = 'Building Archive...';
         if(document.getElementById('pack-progress')) document.getElementById('pack-progress').style.width = '85%';
+        window.emitIPCExportEvent('OP_EXPORT_PROGRESS', 85);
         await new Promise(r => setTimeout(r, 50));
         
         zip.file(docData.title + ".opub", docString);
         
-        // 5. Generate ZIP
-        const content = await zip.generateAsync({type:"blob"});
+        const content = await zip.generateAsync({type:"blob"}, function updateCallback(metadata) {
+            if(document.getElementById('pack-status')) document.getElementById('pack-status').innerText = `Zipping: ${metadata.percent.toFixed(0)}%`;
+            if(document.getElementById('pack-progress')) document.getElementById('pack-progress').style.width = metadata.percent + '%';
+            window.emitIPCExportEvent('OP_EXPORT_PROGRESS', metadata.percent);
+        });
+        
+        if(document.getElementById('pack-status')) document.getElementById('pack-status').innerText = 'Done!';
         if(document.getElementById('pack-progress')) document.getElementById('pack-progress').style.width = '100%';
+        window.emitIPCExportEvent('OP_EXPORT_PROGRESS', 100);
+        window.emitIPCExportEvent('OP_EXPORT_COMPLETE');
         if(document.getElementById('pack-status')) document.getElementById('pack-status').innerText = 'Download Starting...';
         
         const a = document.createElement('a');
@@ -434,6 +454,7 @@ window.packAndGo = async function() {
         setTimeout(() => { if(typeof DialogSystem !== 'undefined') DialogSystem.close(); }, 1500);
         
     } catch(err) {
+        window.emitIPCExportEvent('OP_EXPORT_COMPLETE');
         if(typeof DialogSystem !== 'undefined') {
             DialogSystem.close();
             DialogSystem.alert('Error', 'Failed to generate package: ' + err);
@@ -504,6 +525,7 @@ window.exportXPS = function() {
 // --- MIGRATED IMAGE EXPORT LOGIC ---
 window.exportImageResolutionSetting = 96;
 window.exportAsImage = async function(dpi) {
+    window.emitIPCExportEvent('OP_EXPORT_START');
     if (typeof DialogSystem !== 'undefined') {
         DialogSystem.alert('Exporting...', 'Generating image of current page...');
         setTimeout(() => {
@@ -532,9 +554,11 @@ window.exportAsImage = async function(dpi) {
         a.download = `${docTitle}_Page_${state.currentPageIndex + 1}.jpg`;
         a.click();
 
+        window.emitIPCExportEvent('OP_EXPORT_COMPLETE');
         if (typeof DialogSystem !== 'undefined') DialogSystem.close();
 
     } catch(err) {
+        window.emitIPCExportEvent('OP_EXPORT_COMPLETE');
         if (typeof DialogSystem !== 'undefined') {
             DialogSystem.close();
             setTimeout(() => DialogSystem.alert('Error', 'Failed to generate image: ' + err), 300);
