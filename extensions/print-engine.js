@@ -187,9 +187,21 @@
     window.addEventListener('keydown', clearBookletState);
     window.addEventListener('touchstart', clearBookletState);
 
-    window.printFullDocument = (isBooklet = false) => {
+    window.printFullDocument = async (isBooklet = false) => {
         if (!isBooklet) clearBookletState();
-        window.print();
+        
+        if (window.OP_Desktop_API) {
+            // Need to manually build and cleanup if we bypass the browser's native beforeprint/afterprint events
+            if (typeof buildPrintDOM === 'function') buildPrintDOM();
+            await window.OP_Desktop_API.triggerCustomPrint();
+            const spooler = document.getElementById('op-print-spooler');
+            if (spooler) {
+                spooler.innerHTML = '';
+                spooler.className = '';
+            }
+        } else {
+            window.print();
+        }
     };
 })();
 
@@ -1049,11 +1061,15 @@
             `);
             iframeDoc.close();
 
-            setTimeout(() => {
+            setTimeout(async () => {
                 if (typeof DialogSystem !== 'undefined') DialogSystem.close();
                 
-                printIframe.contentWindow.focus();
-                printIframe.contentWindow.print();
+                if (window.OP_Desktop_API) {
+                    await window.OP_Desktop_API.triggerCustomPrint();
+                } else {
+                    printIframe.contentWindow.focus();
+                    printIframe.contentWindow.print();
+                }
                 
                 setTimeout(() => { printIframe.remove(); }, 2000);
             }, 500);

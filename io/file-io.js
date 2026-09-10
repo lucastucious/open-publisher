@@ -52,7 +52,7 @@ window.saveDocumentAs = function() {
 
 function openDocument() { document.getElementById('file-open').click(); }
 
-function printFullDocument(isBooklet = false) {
+window.printFullDocument = async function(isBooklet = false) {
     if (!isBooklet && typeof serializeCurrentPage === 'function') {
         state.pages[state.currentPageIndex] = serializeCurrentPage();
     }
@@ -121,14 +121,16 @@ function printFullDocument(isBooklet = false) {
 
     // 4. Trigger the browser's native Print Dialog!
     // Give the DOM 100 milliseconds to render the images before popping the dialog
-    setTimeout(() => {
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    if (window.OP_Desktop_API) {
+        await window.OP_Desktop_API.triggerCustomPrint();
+    } else {
         window.print();
-        
-        // 5. Clean up the mess so we don't crash the browser's memory
-        setTimeout(() => {
-            printSpooler.innerHTML = '';
-        }, 1000); 
-    }, 100);
+    }
+    
+    // 5. Clean up the mess so we don't crash the browser's memory
+    printSpooler.innerHTML = '';
 }
 
 function printBooklet() {
