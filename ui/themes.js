@@ -472,6 +472,11 @@ window.applyTheme = function(themeName) {
     if (typeof window.renderThemeDropdown === 'function') {
         window.renderThemeDropdown(themeName);
     }
+
+    // Broadcast theme change to parent window / IPC listeners (e.g., Electron, WebViews)
+    try {
+        window.postMessage({ type: 'OP_THEME_UPDATE', themeName: themeName, theme: theme }, '*');
+    } catch(e) {}
 };
 
 window.renderThemeDropdown = function(activeTheme) {
