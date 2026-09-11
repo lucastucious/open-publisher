@@ -636,73 +636,18 @@
     console.log("🛠️ V62.0 Master Fix initializing...");
 
     // --- 1. RESTORE IMAGE SELECTION & MOVEMENT ---
-    // Overrides the smart image builder to remove the toxic 'pointer-events: none'
-    // and uses draggable="false" instead, restoring full click and drag functionality.
-    if (typeof window.insertSmartImage !== 'undefined') {
-        window.insertSmartImage = function(imageSrc) {
-            const img = new Image();
-            img.onload = function() {
-                let finalWidth = img.naturalWidth;
-                let finalHeight = img.naturalHeight;
-
-                const paper = document.getElementById('paper');
-                const maxWidth = (paper ? paper.offsetWidth : 794) - 40;
-                const maxHeight = (paper ? paper.offsetHeight : 1123) - 40;
-
-                if (finalWidth > maxWidth || finalHeight > maxHeight) {
-                    const scale = Math.min(maxWidth / finalWidth, maxHeight / finalHeight);
-                    finalWidth = Math.round(finalWidth * scale);
-                    finalHeight = Math.round(finalHeight * scale);
-                }
-
-                const el = document.createElement('div');
-                el.className = 'pub-element';
-                el.style.left = '50px';
-                el.style.top = '50px';
-                el.style.width = finalWidth + 'px';
-                el.style.height = finalHeight + 'px';
-                el.style.zIndex = 10;
-                el.setAttribute('data-scaleX', "1");
-                el.setAttribute('data-scaleY', "1");
-                
-                // ✨ THE FIX: Removed pointer-events: none; Added draggable="false" ✨
-                el.innerHTML = `
-                    <div class="element-content">
-                        <img src="${imageSrc}" draggable="false" style="width: 100%; height: 100%; object-fit: fill; display: block; position: absolute; top: 0; left: 0;">
-                    </div>
-                    <div class="resize-handle rh-nw" data-dir="nw"></div>
-                    <div class="resize-handle rh-n" data-dir="n"></div>
-                    <div class="resize-handle rh-ne" data-dir="ne"></div>
-                    <div class="resize-handle rh-e" data-dir="e"></div>
-                    <div class="resize-handle rh-se" data-dir="se"></div>
-                    <div class="resize-handle rh-s" data-dir="s"></div>
-                    <div class="resize-handle rh-sw" data-dir="sw"></div>
-                    <div class="resize-handle rh-w" data-dir="w"></div>
-                    <div class="rotate-stick"></div>
-                    <div class="rotate-handle"></div>
-                `;
-                
-                if (paper) {
-                    paper.appendChild(el);
-                    if (typeof selectElement === 'function') selectElement(el);
-                    if (typeof updateThumbnails === 'function') updateThumbnails();
-                    if (typeof pushHistory === 'function') pushHistory();
-                }
-            };
-            img.src = imageSrc;
-        };
-
-        // Retroactively fix any broken images already sitting on the canvas!
-        setTimeout(() => {
-            if (typeof scheduleEmojiMigrate === 'function') scheduleEmojiMigrate();
-            document.querySelectorAll('.pub-element img').forEach(img => {
-                if (img.style.pointerEvents === 'none') {
-                    img.style.pointerEvents = 'auto';
-                    img.setAttribute('draggable', 'false');
-                }
-            });
-        }, 500);
-    }
+    // Note: The insertSmartImage builder is maintained in extensions/smart-images.js
+    // with full loading spinner, fallback image resolution, and error handling.
+    // Retroactively fix any broken legacy images sitting on the canvas:
+    setTimeout(() => {
+        if (typeof scheduleEmojiMigrate === 'function') scheduleEmojiMigrate();
+        document.querySelectorAll('.pub-element img').forEach(img => {
+            if (img.style.pointerEvents === 'none') {
+                img.style.pointerEvents = 'auto';
+                img.setAttribute('draggable', 'false');
+            }
+        });
+    }, 500);
 
     // --- 2. FIX THE DOUBLE-PASTE BUG ---
     // When you copy an element inside the app, we overwrite the OS clipboard with a dummy text string.

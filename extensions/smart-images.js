@@ -3,32 +3,34 @@
 
     // 1. The Bulletproof Image Builder
     window.insertSmartImage = function(imageSrc, fallbackSrc) {
-        const paper = document.getElementById('paper');
-        
         const spinner = document.createElement('div');
+        spinner.id = 'op-image-import-spinner';
         spinner.innerHTML = `
-            <div style="text-align: center; color: var(--ui-theme-color); font-family: 'Segoe UI', Arial, sans-serif; background: rgba(255,255,255,0.9); padding: 20px 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                <i class="fas fa-spinner fa-spin" style="font-size: 50px; margin-bottom: 15px;"></i>
-                <div style="font-size: 18px; font-weight: 600; letter-spacing: 0.5px;">Importing Image...</div>
-                <div style="font-size: 14px; opacity: 0.7; margin-top: 5px;">Please wait</div>
+            <div style="text-align: center; color: var(--ui-theme-color); font-family: 'Segoe UI', Arial, sans-serif; background: rgba(255,255,255,0.95); padding: 24px 44px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.25); border: 1px solid rgba(0,0,0,0.08); pointer-events: auto;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 15px;"></i>
+                <div style="font-size: 18px; font-weight: 600; letter-spacing: 0.5px; color: #1e293b;">Importing Image...</div>
+                <div style="font-size: 14px; opacity: 0.75; margin-top: 5px; color: #64748b;">Please wait</div>
             </div>
         `;
-        spinner.style.position = paper ? 'absolute' : 'fixed';
+        spinner.style.position = 'fixed';
         spinner.style.top = '0';
         spinner.style.left = '0';
-        spinner.style.width = paper ? '100%' : '100vw';
-        spinner.style.height = paper ? '100%' : '100vh';
-        spinner.style.backgroundColor = 'transparent';
+        spinner.style.width = '100vw';
+        spinner.style.height = '100vh';
+        spinner.style.backgroundColor = 'rgba(0, 0, 0, 0.18)';
+        spinner.style.backdropFilter = 'blur(1px)';
         spinner.style.display = 'flex';
         spinner.style.alignItems = 'center';
         spinner.style.justifyContent = 'center';
         spinner.style.zIndex = '999999';
-        
-        if (paper) {
-            paper.appendChild(spinner);
-        } else {
-            document.body.appendChild(spinner);
-        }
+        spinner.style.pointerEvents = 'auto';
+        document.body.appendChild(spinner);
+
+        const removeSpinner = () => {
+            if (spinner && spinner.parentNode) {
+                spinner.parentNode.removeChild(spinner);
+            }
+        };
 
         const img = new Image();
         let fallbackAttempted = false;
@@ -39,7 +41,7 @@
                 fallbackAttempted = true;
                 img.src = fallbackSrc;
             } else {
-                if (spinner.parentNode) spinner.parentNode.removeChild(spinner);
+                removeSpinner();
                 DialogSystem.alert('Error', 'Failed to load image. It may not exist on the server.');
             }
         };
@@ -53,12 +55,12 @@
             }
             
             if (img.naturalWidth <= 1) {
-                if (spinner.parentNode) spinner.parentNode.removeChild(spinner);
+                removeSpinner();
                 DialogSystem.alert('Error', 'The image loaded but appears to be empty or corrupted.');
                 return;
             }
 
-            if (spinner.parentNode) spinner.parentNode.removeChild(spinner);
+            removeSpinner();
             let finalWidth = img.naturalWidth;
             let finalHeight = img.naturalHeight;
 
