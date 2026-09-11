@@ -1139,11 +1139,14 @@ body.dark-mode .tab.active {
 /* --- PAGE ELEMENTS --- */
 .margin-guides {
     position: absolute;
-    inset: 48px; 
-    border: 1px dotted blue;
+    inset: 48px;
+    border: 1px dotted var(--ui-theme-color, #008080);
     pointer-events: none;
-    z-index: 1001; 
+    z-index: 1001;
     display: block;
+    /* The overlay (#margin-guide-overlay) renders the crisp version outside the CSS scale transform.
+       Hide this in-paper version to avoid showing a blurry duplicate. */
+    opacity: 0;
 }
 
 .page-header, .page-footer {

@@ -32,7 +32,18 @@ window.onload = function() {
     paper.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('keyup', handleKeyUp); 
+    document.addEventListener('keyup', handleKeyUp);
+
+    // Keep the margin guide overlay aligned on scroll and resize
+    const vpEl = document.getElementById('viewport');
+    if (vpEl) {
+        vpEl.addEventListener('scroll', function() {
+            if (typeof window.syncMarginGuideOverlay === 'function') window.syncMarginGuideOverlay();
+        });
+    }
+    window.addEventListener('resize', function() {
+        if (typeof window.syncMarginGuideOverlay === 'function') window.syncMarginGuideOverlay();
+    });
     
     // Track selection changes to update Float Bar state
 let selectionTimer = null;

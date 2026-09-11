@@ -518,9 +518,9 @@ function initBasicBorders() {
         const minDim = Math.min(vW, vH);
         
         if (style === 'Dashed') {
-            r = `<rect x="${w/2}" y="${w/2}" width="${vW - w}" height="${vH - w}" fill="none" stroke="${color}" stroke-width="${w}" stroke-dasharray="${w * 3}, ${w * 2}"></rect>`;
+            r = `<rect x="${w/2}" y="${w/2}" width="${vW - w}" height="${vH - w}" fill="none" stroke="${color}" stroke-width="${w}" stroke-dasharray="${w * 3}, ${w * 2}" vector-effect="non-scaling-stroke"></rect>`;
         } else if (style === 'Dotted') {
-            r = `<rect x="${w/2}" y="${w/2}" width="${vW - w}" height="${vH - w}" fill="none" stroke="${color}" stroke-width="${w}" stroke-dasharray="0.1, ${w * 2}" stroke-linecap="round"></rect>`;
+            r = `<rect x="${w/2}" y="${w/2}" width="${vW - w}" height="${vH - w}" fill="none" stroke="${color}" stroke-width="${w}" stroke-dasharray="0.1, ${w * 2}" stroke-linecap="round" vector-effect="non-scaling-stroke"></rect>`;
         } else if (style === 'Dash-Dot') {
             r = `<rect x="${w/2}" y="${w/2}" width="${vW - w}" height="${vH - w}" fill="none" stroke="${color}" stroke-width="${w}" stroke-dasharray="${w * 4}, ${w * 1.5}, ${w}, ${w * 1.5}"></rect>`;
         } else if (style === 'Dsh-Dt-Dt') {
@@ -1024,25 +1024,23 @@ function initBasicBorders() {
 
         const pWidth = paper.offsetWidth;
         const pHeight = paper.offsetHeight;
-        const inset = 15; 
+        const inset = 15;
         const vW = pWidth - (inset * 2);
         const vH = pHeight - (inset * 2);
 
         const wrapper = document.createElement('div');
         wrapper.id = 'native-blueprint-border';
-        wrapper.className = 'pub-element'; 
+        wrapper.className = 'pub-element';
         wrapper.setAttribute('data-type', 'shape');
-        
         wrapper.style.cssText = `
             position: absolute;
             left: ${inset}px;
             top: ${inset}px;
             width: ${vW}px;
             height: ${vH}px;
-            z-index: 0; 
+            z-index: 0;
             pointer-events: none !important;
         `;
-
         wrapper.innerHTML = `
             <div class="element-content" style="width:100%; height:100%;">
                 <svg viewBox="0 0 ${vW} ${vH}" style="width:100%; height:100%; overflow:visible; position:absolute; top:0; left:0;">

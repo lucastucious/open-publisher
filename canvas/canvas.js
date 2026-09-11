@@ -420,16 +420,89 @@ window.updateIndentMarkersPosition = function() {
 window.setZoom = function(z) {
     state.zoom = z;
     const paperEl = document.getElementById('paper');
-    if (paperEl) paperEl.style.transform = `scale(${z})`;
+    if (paperEl) {
+        paperEl.style.transform = `scale(${z})`;
+        paperEl.style.setProperty('--zoom-level', z);
+    }
     if (window.syncRulers) window.syncRulers();
-    // Sync status bar zoom slider
     const slider = document.getElementById('zoom-slider');
     if (slider) slider.value = Math.round(z * 100);
     const display = document.getElementById('zoom-level-display');
     if (display) display.textContent = Math.round(z * 100) + '%';
-    // Multi-page view
     if (typeof updateMultiPageView === 'function') updateMultiPageView(z);
+    if (typeof window.syncMarginGuideOverlay === 'function') window.syncMarginGuideOverlay();
 };
+
+// --- MARGIN GUIDE OVERLAY ---
+// .margin-guides lives inside #paper which has transform:scale(z). Chromium rasterises
+// the entire #paper subtree into a GPU texture then bilinearly downsamples it, blurring
+// any fine dot/dash pattern below ~1.5 physical pixels at low zoom.
+// Fix: a position:fixed sibling div rendered at native device-pixel resolution, positioned
+// over the paper using getBoundingClientRect() which already accounts for the transform.
+
+(function initMarginGuideOverlay() {
+    const ov = document.createElement('div');
+    ov.id = 'margin-guide-overlay';
+    ov.style.cssText = 'position:fixed; pointer-events:none; z-index:9999; box-sizing:border-box; display:none;';
+    document.body.appendChild(ov);
+})();
+
+window.syncMarginGuideOverlay = function() {
+    const paper  = document.getElementById('paper');
+    const guide  = document.getElementById('margin-guides');
+    const ov     = document.getElementById('margin-guide-overlay');
+    if (!ov || !paper || !guide) return;
+
+    // Mirror visibility of the real margin-guides div
+    if (guide.style.display === 'none') {
+        ov.style.display = 'none';
+        return;
+    }
+
+    // getBoundingClientRect on #paper gives the actual rendered rect (after scale transform)
+    // in window coordinates, which is exactly what position:fixed uses.
+    const pr = paper.getBoundingClientRect();
+    const z  = (typeof state !== 'undefined' && state.zoom) ? state.zoom : 1;
+
+    // Read the current margin values from state (paper-coordinate pixels)
+    const m = (typeof state !== 'undefined' && state.margins) ? state.margins : { top: 48, right: 48, bottom: 48, left: 48 };
+
+    ov.style.left   = (pr.left   + m.left   * z) + 'px';
+    ov.style.top    = (pr.top    + m.top    * z) + 'px';
+    ov.style.width  = (pr.width  - (m.left + m.right)  * z) + 'px';
+    ov.style.height = (pr.height - (m.top  + m.bottom) * z) + 'px';
+
+    // Match the dot colour to the active UI theme (--ui-theme-color), falling back to teal
+    const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--ui-theme-color').trim() || '#008080';
+    ov.style.border = '1px dotted ' + themeColor;
+
+    // Clip the overlay to the canvas viewport so it never bleeds over the ribbon or other UI chrome.
+    // clip-path:inset() takes distances from each edge of the element inward.
+    // A positive value means that edge is clipped; negative/zero means fully visible.
+    const vp = document.getElementById('viewport');
+    if (vp) {
+        const vr  = vp.getBoundingClientRect();
+        const ovR = ov.getBoundingClientRect();
+        const clipTop    = Math.max(0, vr.top    - ovR.top)    + 'px';
+        const clipRight  = Math.max(0, ovR.right  - vr.right)  + 'px';
+        const clipBottom = Math.max(0, ovR.bottom - vr.bottom) + 'px';
+        const clipLeft   = Math.max(0, vr.left   - ovR.left)   + 'px';
+        ov.style.clipPath = `inset(${clipTop} ${clipRight} ${clipBottom} ${clipLeft})`;
+    }
+
+    ov.style.display = 'block';
+
+};
+
+// Run a rAF loop to keep the overlay locked to the paper on every frame.
+// This handles fast panning, window resize, and any layout shift without
+// needing discrete events — cost is one getBoundingClientRect + 4 style writes per frame.
+(function marginOverlayRAFLoop() {
+    window.syncMarginGuideOverlay();
+    requestAnimationFrame(marginOverlayRAFLoop);
+})();
+
+window._compensateBorderSVGForZoom = function() { /* no-op */ };
 
 // --- MULTI-PAGE VIEW ---
 // When zoom is low enough, render read-only preview clones of all pages beside the active page

@@ -212,53 +212,48 @@ function setPageBorder(type, doPush = true) {
     if (!type) type = 'none';
     const div = document.getElementById('page-border');
     div.setAttribute('data-style', type);
-    div.style.cssText = 'position: absolute; inset: 0; pointer-events: none; z-index: 2500; box-sizing: border-box;'; 
-    div.innerHTML = ''; 
+    div.style.cssText = 'position: absolute; inset: 0; pointer-events: none; z-index: 2500; box-sizing: border-box;';
+    div.innerHTML = '';
 
-    if(type === 'none') { if(doPush) pushHistory(); return; }
-    
+    if (type === 'none') { if (doPush) pushHistory(); return; }
+
     if (type.startsWith('fancy-')) {
-        if (type === 'fancy-deco') { 
-            div.style.border = "15px solid #333"; 
-            div.style.outline = "2px dashed #333"; 
-            div.style.outlineOffset = "-20px"; 
-        }
-        else if (type === 'fancy-cert') { 
-            div.style.border = "20px solid #d4af37"; 
-            div.style.borderImage = "linear-gradient(to bottom right, #b8860b, #ffd700, #b8860b) 1"; 
-            const inner = document.createElement('div'); 
-            inner.style.position = 'absolute'; inner.style.inset = '5px'; inner.style.border = '2px solid #b8860b'; 
-            div.appendChild(inner); 
-        }
-        else if (type === 'fancy-double') { 
-            div.style.border = "double 10px #000"; 
-            div.style.outline = "double 4px #000"; 
-            div.style.outlineOffset = "-15px"; 
-        }
-        else if (type === 'fancy-antique') {
-            div.style.border = "10px double #5d4037";
+        if (type === 'fancy-deco') {
+            div.style.border = '15px solid #333';
+            div.style.outline = '2px dashed #333';
+            div.style.outlineOffset = '-20px';
+        } else if (type === 'fancy-cert') {
+            div.style.border = '20px solid #d4af37';
+            div.style.borderImage = 'linear-gradient(to bottom right, #b8860b, #ffd700, #b8860b) 1';
+            const inner = document.createElement('div');
+            inner.style.position = 'absolute'; inner.style.inset = '5px'; inner.style.border = '2px solid #b8860b';
+            div.appendChild(inner);
+        } else if (type === 'fancy-double') {
+            div.style.border = 'double 10px #000';
+            div.style.outline = 'double 4px #000';
+            div.style.outlineOffset = '-15px';
+        } else if (type === 'fancy-antique') {
+            div.style.border = '10px double #5d4037';
             const c = document.createElement('div');
-            c.style.cssText = "position:absolute; inset:5px; border: 2px solid #5d4037; border-radius: 10px;";
+            c.style.cssText = 'position:absolute; inset:5px; border: 2px solid #5d4037; border-radius: 10px;';
             div.appendChild(c);
-        }
-        else if (type === 'fancy-modern') {
-            div.style.border = "20px solid #2c3e50";
-            div.style.borderBottom = "40px solid #2c3e50";
-        }
-        else if (type === 'fancy-floral') {
-            div.style.border = "5px solid green";
-            const tl = document.createElement('div'); tl.innerText = "🌿"; tl.style.cssText = "position:absolute; top:-15px; left:-15px; font-size:40px;";
-            const tr = document.createElement('div'); tr.innerText = "🌿"; tr.style.cssText = "position:absolute; top:-15px; right:-15px; font-size:40px; transform:scaleX(-1);";
-            const bl = document.createElement('div'); bl.innerText = "🌿"; bl.style.cssText = "position:absolute; bottom:-15px; left:-15px; font-size:40px; transform:scaleY(-1);";
-            const br = document.createElement('div'); br.innerText = "🌿"; br.style.cssText = "position:absolute; bottom:-15px; right:-15px; font-size:40px; transform:scale(-1);";
+        } else if (type === 'fancy-modern') {
+            div.style.border = '20px solid #2c3e50';
+            div.style.borderBottom = '40px solid #2c3e50';
+        } else if (type === 'fancy-floral') {
+            div.style.border = '5px solid green';
+            const tl = document.createElement('div'); tl.innerText = '🌿'; tl.style.cssText = 'position:absolute; top:-15px; left:-15px; font-size:40px;';
+            const tr = document.createElement('div'); tr.innerText = '🌿'; tr.style.cssText = 'position:absolute; top:-15px; right:-15px; font-size:40px; transform:scaleX(-1);';
+            const bl = document.createElement('div'); bl.innerText = '🌿'; bl.style.cssText = 'position:absolute; bottom:-15px; left:-15px; font-size:40px; transform:scaleY(-1);';
+            const br = document.createElement('div'); br.innerText = '🌿'; br.style.cssText = 'position:absolute; bottom:-15px; right:-15px; font-size:40px; transform:scale(-1);';
             div.appendChild(tl); div.appendChild(tr); div.appendChild(bl); div.appendChild(br);
         }
     } else {
-        div.style.border = `5px ${type} #333`;
-        div.style.inset = '0px'; 
+        div.style.border = '2px ' + type + ' #333';
     }
+
     document.getElementById('border-dropdown').style.display = 'none';
-    if(doPush) pushHistory();
+    if (doPush) pushHistory();
 }
 
 

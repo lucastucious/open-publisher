@@ -146,7 +146,9 @@ function toggleSpreadMode() {
 function toggleMargins() {
     const g = document.getElementById('margin-guides');
     g.style.display = (g.style.display === 'none') ? 'block' : 'none';
+    if (typeof window.syncMarginGuideOverlay === 'function') window.syncMarginGuideOverlay();
 }
+
 
 
 function showGuidesModal() {
@@ -257,6 +259,7 @@ function showCustomMarginsModal() {
 function setMarginPreset(top, right, bottom, left) {
     state.margins = {top: top, right: right, bottom: bottom, left: left};
     renderPage(state.pages[state.currentPageIndex]);
+    if (typeof window.syncMarginGuideOverlay === 'function') window.syncMarginGuideOverlay();
     pushHistory();
 }
 

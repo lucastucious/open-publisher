@@ -46,6 +46,14 @@ window.handlePublisherFileLoad = (evt) => {
             state.historyIndex = -1;
             state.currentPageIndex = 0;
             renderPage(state.pages[0]);
+            // Sync the margin guide overlay after the page renders so it is correctly
+            // positioned over the paper at the current zoom level.
+            setTimeout(() => {
+                if (typeof window.syncMarginGuideOverlay === 'function') {
+                    window.syncMarginGuideOverlay();
+                }
+            }, 100);
+
             setTimeout(() => {
                 if (typeof generateAllThumbnails === 'function') generateAllThumbnails();
                 if (typeof pushHistory === 'function') pushHistory(); 
