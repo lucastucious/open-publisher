@@ -1,8 +1,17 @@
 
 function saveDocument() {
     state.pages[state.currentPageIndex] = serializeCurrentPage();
+    // Ensure all pages have explicit orientation set
+    state.pages.forEach(p => {
+        if (!p.orientation) {
+            p.orientation = parseFloat(p.width) >= parseFloat(p.height) ? 'landscape' : 'portrait';
+        }
+    });
+    const firstPage = state.pages[0] || {};
+    const docOrientation = firstPage.orientation || (parseFloat(firstPage.width) >= parseFloat(firstPage.height) ? 'landscape' : 'portrait');
     const docData = {
         title: document.getElementById('doc-title').innerText,
+        orientation: docOrientation,
         pages: state.pages,
         hasMasterPage: state.hasMasterPage || false,
         isSpreadMode: state.isSpreadMode || false,

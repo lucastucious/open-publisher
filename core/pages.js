@@ -2,6 +2,26 @@
 function renderPage(pageData) {
     deselect();
     
+    // Normalize and enforce explicit orientation if present
+    if (pageData.orientation) {
+        let curW = parseFloat(pageData.width) || 794;
+        let curH = parseFloat(pageData.height) || 1123;
+        if (pageData.orientation === 'landscape' && curW < curH) {
+            pageData.width = Math.max(curW, curH) + 'px';
+            pageData.height = Math.min(curW, curH) + 'px';
+        } else if (pageData.orientation === 'portrait' && curW > curH) {
+            pageData.width = Math.min(curW, curH) + 'px';
+            pageData.height = Math.max(curW, curH) + 'px';
+        }
+    } else {
+        pageData.orientation = (parseFloat(pageData.width) >= parseFloat(pageData.height || '1123')) ? 'landscape' : 'portrait';
+    }
+
+    if (pageData.id) {
+        if (!window._orientedPagesRegistry) window._orientedPagesRegistry = new Set();
+        window._orientedPagesRegistry.add(pageData.id);
+    }
+    
     paper.style.width = pageData.width;
     paper.style.height = pageData.height;
     if (pageData.ignoreBackground) {
@@ -226,8 +246,10 @@ function addNewPage() {
         pageW = (parseInt(defaultW) * 2) + 'px';
     }
 
+    const isLand = parseFloat(pageW) >= parseFloat(defaultH);
     const newPage = {
         id: Date.now(),
+        orientation: isLand ? 'landscape' : 'portrait',
         width: pageW, height: defaultH,
         background: '#ffffff',
         header: 'Header (Type here)', 
@@ -283,8 +305,10 @@ function addMasterPage() {
         pageW = (parseInt(defaultW) * 2) + 'px';
     }
 
+    const isMasterLand = parseFloat(pageW) >= parseFloat(defaultH);
     const newPage = {
         id: Date.now() + '-master',
+        orientation: isMasterLand ? 'landscape' : 'portrait',
         width: pageW, height: defaultH,
         background: '#ffffff',
         header: 'Header (Type here)', 

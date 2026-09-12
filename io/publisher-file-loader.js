@@ -40,8 +40,32 @@ window.handlePublisherFileLoad = (evt) => {
             } else {
                 document.getElementById('paper').classList.remove('cmyk-mode');
             }
+            
+            // Normalize and enforce orientation on loaded pages
             if (!window._orientedPagesRegistry) window._orientedPagesRegistry = new Set();
-            state.pages.forEach(p => window._orientedPagesRegistry.add(p.id));
+            if (state.pages && Array.isArray(state.pages)) {
+                state.pages.forEach(p => {
+                    if (!p.id) p.id = Date.now() + Math.random();
+                    // If root document has orientation and page does not, inherit root orientation
+                    if (!p.orientation && data.orientation) {
+                        p.orientation = data.orientation;
+                    }
+                    if (p.orientation) {
+                        let curW = parseFloat(p.width) || 794;
+                        let curH = parseFloat(p.height) || 1123;
+                        if (p.orientation === 'landscape' && curW < curH) {
+                            p.width = Math.max(curW, curH) + 'px';
+                            p.height = Math.min(curW, curH) + 'px';
+                        } else if (p.orientation === 'portrait' && curW > curH) {
+                            p.width = Math.min(curW, curH) + 'px';
+                            p.height = Math.max(curW, curH) + 'px';
+                        }
+                    } else {
+                        p.orientation = (parseFloat(p.width) >= parseFloat(p.height || '1123')) ? 'landscape' : 'portrait';
+                    }
+                    window._orientedPagesRegistry.add(p.id);
+                });
+            }
             state.history = [];
             state.historyIndex = -1;
             state.currentPageIndex = 0;

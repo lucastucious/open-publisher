@@ -25,7 +25,11 @@ function setPageSize(format) {
     // Auto-update the UI format icon immediately
     if (typeof window.setPageFormatIcon === 'function') window.setPageFormatIcon(format);
     
-    if (typeof state !== 'undefined' && state.pages && state.pages.length > 0) {
+    if (typeof state !== 'undefined' && state.pages && state.pages.length > 0 && state.pages[state.currentPageIndex]) {
+        const isLand = parseFloat(w) >= parseFloat(h);
+        state.pages[state.currentPageIndex].orientation = isLand ? 'landscape' : 'portrait';
+        if (!window._orientedPagesRegistry) window._orientedPagesRegistry = new Set();
+        window._orientedPagesRegistry.add(state.pages[state.currentPageIndex].id);
         pushHistory();
     }
     
@@ -62,6 +66,12 @@ function changeSize() {
             }
             paper.style.width = finalW;
             paper.style.height = newH + 'px';
+            if (state.pages && state.pages[state.currentPageIndex]) {
+                const isLand = parseFloat(finalW) >= parseFloat(newH);
+                state.pages[state.currentPageIndex].orientation = isLand ? 'landscape' : 'portrait';
+                if (!window._orientedPagesRegistry) window._orientedPagesRegistry = new Set();
+                window._orientedPagesRegistry.add(state.pages[state.currentPageIndex].id);
+            }
             pushHistory();
             const sizeDrop = document.getElementById('size-dropdown');
             if (sizeDrop) sizeDrop.style.display = 'none';
@@ -74,6 +84,12 @@ function toggleOrientation() {
     const currentH = paper.style.height;
     paper.style.width = currentH;
     paper.style.height = currentW;
+    if (state.pages && state.pages[state.currentPageIndex]) {
+        const isLand = parseFloat(currentH) >= parseFloat(currentW);
+        state.pages[state.currentPageIndex].orientation = isLand ? 'landscape' : 'portrait';
+        if (!window._orientedPagesRegistry) window._orientedPagesRegistry = new Set();
+        window._orientedPagesRegistry.add(state.pages[state.currentPageIndex].id);
+    }
     pushHistory();
 }
 

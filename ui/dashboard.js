@@ -527,8 +527,32 @@ window.DashboardSystem = {
                 state.history = [];
                 state.historyIndex = -1;
                 
-                state.pages = file.data.pages; // Need to ensure it's unreferenced/deep copied if reused, but here we just assign
+                // Deep clone pages to avoid mutating recent files cache directly
+                state.pages = JSON.parse(JSON.stringify(file.data.pages || []));
                 state.currentPageIndex = 0;
+                
+                // Normalize and enforce orientation on recent pages
+                if (!window._orientedPagesRegistry) window._orientedPagesRegistry = new Set();
+                state.pages.forEach(p => {
+                    if (!p.id) p.id = Date.now() + Math.random();
+                    if (!p.orientation && file.data && file.data.orientation) {
+                        p.orientation = file.data.orientation;
+                    }
+                    if (p.orientation) {
+                        let curW = parseFloat(p.width) || 794;
+                        let curH = parseFloat(p.height) || 1123;
+                        if (p.orientation === 'landscape' && curW < curH) {
+                            p.width = Math.max(curW, curH) + 'px';
+                            p.height = Math.min(curW, curH) + 'px';
+                        } else if (p.orientation === 'portrait' && curW > curH) {
+                            p.width = Math.min(curW, curH) + 'px';
+                            p.height = Math.max(curW, curH) + 'px';
+                        }
+                    } else {
+                        p.orientation = (parseFloat(p.width) >= parseFloat(p.height || '1123')) ? 'landscape' : 'portrait';
+                    }
+                    window._orientedPagesRegistry.add(p.id);
+                });
                 
                 document.getElementById('doc-title').innerText = file.name.replace('.opub', '');
                 

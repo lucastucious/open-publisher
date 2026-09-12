@@ -32,7 +32,13 @@ function redo() {
 function restoreSnapshot(snap) {
     state.pages = JSON.parse(JSON.stringify(snap.pages));
     if (!window._orientedPagesRegistry) window._orientedPagesRegistry = new Set();
-    state.pages.forEach(p => window._orientedPagesRegistry.add(p.id));
+    state.pages.forEach(p => {
+        if (!p.id) p.id = Date.now() + Math.random();
+        if (!p.orientation) {
+            p.orientation = parseFloat(p.width) >= parseFloat(p.height) ? 'landscape' : 'portrait';
+        }
+        window._orientedPagesRegistry.add(p.id);
+    });
     state.currentPageIndex = snap.idx;
     
     // Restore Spread Mode state (default to false if undefined in older snapshots)
@@ -47,14 +53,18 @@ function restoreSnapshot(snap) {
 function serializeCurrentPage() {
     // FIXED: Preserve existing thumbnail if present so it doesn't blank out on page switch
     const existingPage = state.pages[state.currentPageIndex] || {};
+    const curW = paper.style.width || '794px';
+    const curH = paper.style.height || '1123px';
+    const isLand = parseFloat(curW) >= parseFloat(curH);
     
     const p = {
         id: existingPage.id || Date.now(),
+        orientation: isLand ? 'landscape' : 'portrait',
         thumb: existingPage.thumb, // <--- PRESERVE THUMBNAIL
         ignoreMasterPage: existingPage.ignoreMasterPage || false,
         ignoreBackground: existingPage.ignoreBackground || false,
-        width: paper.style.width || '794px',
-        height: paper.style.height || '1123px',
+        width: curW,
+        height: curH,
         background: paper.style.background || 'white',
         header: paper.querySelector('.page-header').innerHTML,
         footer: paper.querySelector('.page-footer').innerHTML,

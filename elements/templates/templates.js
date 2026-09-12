@@ -371,7 +371,7 @@ function initTemplates() {
             gridDiv.appendChild(div);
             
             // Fetch the template file
-            fetch(`elements/templates/files/${t.file}?v=4.20.2`)
+            fetch(`elements/templates/files/${t.file}?v=4.20.3`)
                 .then(res => res.json())
                 .then(opubData => {
                     const page = opubData.pages[0];
@@ -422,9 +422,27 @@ function loadTemplate(opubData) {
         // Deep copy the pages to avoid reference issues
         state.pages = JSON.parse(JSON.stringify(opubData.pages));
         
-        // Generate new IDs for the pages to ensure uniqueness
+        // Generate new IDs for the pages to ensure uniqueness and register orientation lock
+        if (!window._orientedPagesRegistry) window._orientedPagesRegistry = new Set();
         state.pages.forEach(p => {
             p.id = Date.now() + Math.random();
+            if (!p.orientation && opubData && opubData.orientation) {
+                p.orientation = opubData.orientation;
+            }
+            if (p.orientation) {
+                let curW = parseFloat(p.width) || 794;
+                let curH = parseFloat(p.height) || 1123;
+                if (p.orientation === 'landscape' && curW < curH) {
+                    p.width = Math.max(curW, curH) + 'px';
+                    p.height = Math.min(curW, curH) + 'px';
+                } else if (p.orientation === 'portrait' && curW > curH) {
+                    p.width = Math.min(curW, curH) + 'px';
+                    p.height = Math.max(curW, curH) + 'px';
+                }
+            } else {
+                p.orientation = (parseFloat(p.width) >= parseFloat(p.height || '1123')) ? 'landscape' : 'portrait';
+            }
+            window._orientedPagesRegistry.add(p.id);
         });
         
         state.currentPageIndex = 0;

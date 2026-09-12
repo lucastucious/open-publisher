@@ -3442,6 +3442,9 @@ setInterval(() => {
     if (!window._orientedPagesRegistry.has(currentPage.id)) {
         window._orientedPagesRegistry.add(currentPage.id); // Lock it permanently for this session
         
+        // If the page already has an explicit orientation assigned, never mutate it!
+        if (currentPage.orientation) return;
+        
         const bgEl = currentPage.elements.find(e => e.imgSrc && e.imgSrc.startsWith('data:image'));
         
         if (bgEl) {
@@ -3535,6 +3538,9 @@ setInterval(() => {
     // 2. If we haven't checked this specific page yet, check it!
     if (!window._orientedPagesRegistry.has(currentPage.id)) {
         window._orientedPagesRegistry.add(currentPage.id); // Lock it permanently for this session
+        
+        // If the page already has an explicit orientation assigned, never mutate it!
+        if (currentPage.orientation) return;
         
         const bgEl = currentPage.elements.find(e => e.imgSrc && e.imgSrc.startsWith('data:image'));
         
