@@ -691,6 +691,10 @@ body.dark-mode .tab.active {
     padding: 5px 10px; cursor: pointer; font-size: 16px;
 }
 .font-item:hover { background: var(--ui-hover-bg); }
+.font-item.highlighted {
+    background: var(--ui-theme-color) !important;
+    color: #ffffff !important;
+}
 
 /* --- FLOAT TOOLBAR --- */
 #float-toolbar {
@@ -2980,6 +2984,10 @@ svg .shape-path, svg .shape-path * {
             transition: background 0.1s;
         }
         .font-item:hover { background: color-mix(in srgb, var(--ui-theme-dark) 10%, transparent) !important; }
+        .font-item.highlighted {
+            background: var(--ui-theme-color) !important;
+            color: #ffffff !important;
+        }
         
         .float-size-item {
             color: var(--ui-theme-dark);
@@ -3042,6 +3050,10 @@ svg .shape-path, svg .shape-path * {
         }
         body.dark-mode .float-size-item:hover, body.dark-mode .font-item:hover {
             background: var(--ui-hover-bg) !important;
+        }
+        body.dark-mode .font-item.highlighted {
+            background: var(--ui-theme-color) !important;
+            color: #ffffff !important;
         }
         
         body.dark-mode.dark-ui-theme .float-font-btn,

@@ -1,4 +1,122 @@
 
+// --- FONT DROPDOWN KEYBOARD NAVIGATION ---
+let fontNavState = {
+    lastSearchedChar: null,
+    matchIndex: 0,
+    highlightedItem: null
+};
+
+window.resetFontNavState = function() {
+    fontNavState.lastSearchedChar = null;
+    fontNavState.matchIndex = 0;
+    if (fontNavState.highlightedItem) {
+        fontNavState.highlightedItem.classList.remove('highlighted');
+        fontNavState.highlightedItem = null;
+    }
+    document.querySelectorAll('.font-item.highlighted').forEach(el => el.classList.remove('highlighted'));
+};
+
+function getActiveFontDropdown() {
+    const ribbonMenu = document.getElementById('ribbon-font-list');
+    if (ribbonMenu && ribbonMenu.style.display === 'block') return ribbonMenu;
+    const floatMenu = document.getElementById('float-font-list');
+    if (floatMenu && floatMenu.style.display === 'block') return floatMenu;
+    return null;
+}
+
+window.highlightFontItem = function(activeMenu, item, scroll = true) {
+    if (!item || !activeMenu) return;
+    if (fontNavState.highlightedItem) {
+        fontNavState.highlightedItem.classList.remove('highlighted');
+    }
+    activeMenu.querySelectorAll('.font-item.highlighted').forEach(el => el.classList.remove('highlighted'));
+    item.classList.add('highlighted');
+    fontNavState.highlightedItem = item;
+    if (scroll) {
+        item.scrollIntoView({ block: 'nearest' });
+    }
+};
+
+function handleFontDropdownKeyDown(e) {
+    const activeMenu = getActiveFontDropdown();
+    if (!activeMenu) return;
+
+    // 1. Escape: Close dropdown
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        activeMenu.style.display = 'none';
+        window.resetFontNavState();
+        return;
+    }
+
+    // 2. Enter: Commit selection
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (fontNavState.highlightedItem) {
+            fontNavState.highlightedItem.click();
+        } else {
+            activeMenu.style.display = 'none';
+        }
+        window.resetFontNavState();
+        return;
+    }
+
+    const allItems = Array.from(activeMenu.querySelectorAll('.font-item'));
+    if (allItems.length === 0) return;
+
+    // 3. Arrow Down: Next item
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        e.stopPropagation();
+        let currentIndex = fontNavState.highlightedItem ? allItems.indexOf(fontNavState.highlightedItem) : -1;
+        let nextIndex = (currentIndex + 1) % allItems.length;
+        window.highlightFontItem(activeMenu, allItems[nextIndex]);
+        fontNavState.lastSearchedChar = null;
+        return;
+    }
+
+    // 4. Arrow Up: Previous item
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        e.stopPropagation();
+        let currentIndex = fontNavState.highlightedItem ? allItems.indexOf(fontNavState.highlightedItem) : 0;
+        let prevIndex = (currentIndex - 1 + allItems.length) % allItems.length;
+        window.highlightFontItem(activeMenu, allItems[prevIndex]);
+        fontNavState.lastSearchedChar = null;
+        return;
+    }
+
+    // 5. Letter key: Jump and cycle through fonts starting with that letter
+    if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey && /^[a-zA-Z]$/.test(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+        const char = e.key.toUpperCase();
+        const matchingItems = allItems.filter(item => item.innerText.trim().toUpperCase().startsWith(char));
+        if (matchingItems.length === 0) return;
+
+        if (char === fontNavState.lastSearchedChar && matchingItems.includes(fontNavState.highlightedItem)) {
+            // Cycle to the next font starting with the same letter
+            fontNavState.matchIndex = (matchingItems.indexOf(fontNavState.highlightedItem) + 1) % matchingItems.length;
+        } else {
+            // New letter or first press of this letter
+            fontNavState.lastSearchedChar = char;
+            fontNavState.matchIndex = 0;
+        }
+
+        const targetItem = matchingItems[fontNavState.matchIndex];
+        window.highlightFontItem(activeMenu, targetItem);
+    }
+}
+
+let fontKeyNavInitialized = false;
+function initFontDropdownKeyNav() {
+    if (fontKeyNavInitialized) return;
+    window.addEventListener('keydown', handleFontDropdownKeyDown, true);
+    fontKeyNavInitialized = true;
+}
+
 function initFontPickers() {
     const ribbonList = document.getElementById('ribbon-font-list');
     const floatList = document.getElementById('float-font-list');
@@ -14,6 +132,7 @@ function initFontPickers() {
         item1.innerText = font;
         item1.style.fontFamily = font;
         item1.onclick = () => { selectFont(font); };
+        item1.onmouseenter = () => { window.highlightFontItem(ribbonList, item1, false); };
         ribbonList.appendChild(item1);
 
         // Float Item
@@ -22,6 +141,7 @@ function initFontPickers() {
         item2.innerText = font;
         item2.style.fontFamily = font;
         item2.onclick = () => { selectFont(font); };
+        item2.onmouseenter = () => { window.highlightFontItem(floatList, item2, false); };
         floatList.appendChild(item2);
 
         // Preload font by creating an element
@@ -30,6 +150,8 @@ function initFontPickers() {
         span.innerText = "A";
         preloader.appendChild(span);
     });
+
+    initFontDropdownKeyNav();
 }
 
 
@@ -50,8 +172,9 @@ function selectFont(fontName) {
         setFloatFont(fontName);
     }
     
-    // Hide Menus
+    // Hide Menus & reset navigation state
     document.querySelectorAll('.custom-dropdown').forEach(d => d.style.display = 'none');
+    window.resetFontNavState();
 }
 
 

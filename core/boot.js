@@ -79,6 +79,7 @@ document.addEventListener('selectionchange', () => {
            !e.target.closest('.font-picker-container')) {
             document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
             document.querySelectorAll('.custom-dropdown').forEach(d => d.style.display = 'none');
+            if (typeof window.resetFontNavState === 'function') window.resetFontNavState();
         }
         if(e.target.id === 'viewport' || e.target.classList.contains('viewport')) deselect();
     });

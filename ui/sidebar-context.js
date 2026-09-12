@@ -341,6 +341,9 @@ function toggleCustomDropdown(type) {
     
     // Close others
     document.querySelectorAll('.custom-dropdown').forEach(d => d.style.display = 'none');
+    if (typeof window.resetFontNavState === 'function') {
+        window.resetFontNavState();
+    }
     
     if (!isVisible) {
         // Calculate position to prevent clipping in Ribbon overflow
@@ -354,6 +357,18 @@ function toggleCustomDropdown(type) {
             menu.style.zIndex = '999999';
         }
         menu.style.display = 'block';
+
+        // Pre-highlight and scroll to current active font if present
+        const labelId = type === 'ribbon' ? 'ribbon-font-label' : 'float-font-label';
+        const labelEl = document.getElementById(labelId);
+        const currentFont = labelEl ? labelEl.innerText.trim() : '';
+        if (currentFont) {
+            const items = Array.from(menu.querySelectorAll('.font-item'));
+            const matched = items.find(it => it.innerText.trim().toLowerCase() === currentFont.toLowerCase());
+            if (matched && typeof window.highlightFontItem === 'function') {
+                window.highlightFontItem(menu, matched, true);
+            }
+        }
     } else {
         menu.style.display = 'none';
     }
