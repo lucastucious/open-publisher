@@ -684,7 +684,7 @@ body.dark-mode .tab.active {
 .custom-dropdown {
     position: absolute; top: 100%; left: 0; width: 250px; 
     background: var(--ui-panel-bg); border: 1px solid var(--ui-border); max-height: 300px; 
-    overflow-y: auto; z-index: 6000; display: none;
+    overflow-y: auto; z-index: 999999; display: none;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 .font-item {
@@ -1147,6 +1147,10 @@ body.dark-mode .tab.active {
     /* The overlay (#margin-guide-overlay) renders the crisp version outside the CSS scale transform.
        Hide this in-paper version to avoid showing a blurry duplicate. */
     opacity: 0;
+}
+
+#margin-guide-overlay {
+    z-index: 1001 !important;
 }
 
 .page-header, .page-footer {
@@ -2963,6 +2967,7 @@ svg .shape-path, svg .shape-path * {
             box-shadow: 0 8px 24px color-mix(in srgb, var(--ui-theme-dark) 15%, transparent) !important;
             padding: 4px !important;
             margin-top: 4px !important;
+            z-index: 999999 !important;
         }
         .custom-dropdown::-webkit-scrollbar { width: 6px; }
         .custom-dropdown::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ui-theme-dark) 30%, transparent); border-radius: 3px; }

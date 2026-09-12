@@ -443,7 +443,7 @@ window.setZoom = function(z) {
 (function initMarginGuideOverlay() {
     const ov = document.createElement('div');
     ov.id = 'margin-guide-overlay';
-    ov.style.cssText = 'position:fixed; pointer-events:none; z-index:9999; box-sizing:border-box; display:none;';
+    ov.style.cssText = 'position:fixed; pointer-events:none; z-index:1001; box-sizing:border-box; display:none;';
     document.body.appendChild(ov);
 })();
 

@@ -351,6 +351,7 @@ function toggleCustomDropdown(type) {
             menu.style.top = (rect.bottom + 2) + 'px';
             // We must ensure the width matches or is appropriate
             menu.style.width = '200px'; 
+            menu.style.zIndex = '999999';
         }
         menu.style.display = 'block';
     } else {
