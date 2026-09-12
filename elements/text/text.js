@@ -517,8 +517,9 @@ function setFloatFont(val) {
 
 function isTextEditing() {
      const ae = document.activeElement;
-     return ae && (ae.isContentEditable || ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA');
+     return !!(ae && (ae.isContentEditable || ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || (ae.closest && ae.closest('[contenteditable="true"]'))));
 }
+window.isTextEditing = isTextEditing;
 
 // --- MIGRATED FONT LIST ---
 const fontList = [

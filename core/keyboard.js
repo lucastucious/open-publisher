@@ -201,8 +201,9 @@ document.addEventListener('keydown', (e) => {
             return;
         }
 
-        // Only delete if not editing text
-        if(e.key === 'Delete' && !isTextEditing()) {
+        // Only delete if not editing text (supports Delete and Mac Backspace)
+        if ((e.key === 'Delete' || e.key === 'Backspace') && !isTextEditing()) {
+            e.preventDefault();
             deleteSelected();
         }
         if(e.key === 'Escape') deselect(); 
