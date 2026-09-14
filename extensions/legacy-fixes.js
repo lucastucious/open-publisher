@@ -930,9 +930,15 @@
 
         // --- 1. OVERRIDE CTRL + C ---
         if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
-            if (isTextEditing) return; // Let the user copy text normally if typing
+            const sel = window.getSelection();
+            const hasTextSelection = sel && sel.rangeCount > 0 && !sel.isCollapsed;
 
-            // If they have EITHER a single item OR multiple items selected
+            // If the user is in text editing mode (cursor inside a text box, black border)
+            // AND they have text highlighted - let the browser copy the text normally.
+            if (isTextEditing && hasTextSelection) return;
+
+            // Otherwise (element selected with no text highlighted, or black-border mode
+            // with nothing selected) - copy the whole element.
             if (state.selectedEl || (state.multiSelected && state.multiSelected.length > 0)) {
                 e.preventDefault();
                 e.stopImmediatePropagation(); // Kill the original broken shortcut

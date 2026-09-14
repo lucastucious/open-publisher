@@ -48,7 +48,12 @@ document.addEventListener('keydown', (e) => {
         }
         // Copy
         if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
-            if (state.selectedEl && !isTextEditing()) {
+            const sel = window.getSelection();
+            const hasTextSel = sel && sel.rangeCount > 0 && !sel.isCollapsed;
+            // Only block element copy if the user is actively editing text AND has text highlighted.
+            // If they are in text-editing mode (black border) but nothing is highlighted,
+            // copy the whole element instead.
+            if (state.selectedEl && !(isTextEditing() && hasTextSel)) {
                  e.preventDefault();
                  copyEl();
             }
