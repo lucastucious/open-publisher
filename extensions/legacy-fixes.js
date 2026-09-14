@@ -732,9 +732,16 @@
 
     // --- 2. MULTI-ITEM COPY / CUT ---
     window.copyEl = function(isCut = false) {
-        // Recover focus if lost due to clicking ribbon
+        // Check up front whether the user has text highlighted inside a contenteditable.
+        // We must do this BEFORE the recover-focus block below changes focus/selection.
+        const selBeforeRecover = window.getSelection();
+        const hasTextSelectionBeforeRecover = selBeforeRecover && selBeforeRecover.rangeCount > 0 && !selBeforeRecover.isCollapsed;
+
+        // Recover focus if lost due to clicking ribbon - but only when the user
+        // actually had text selected (i.e. this is a text copy, not an element copy).
         let targetBox = document.activeElement;
-        if (!targetBox || (!targetBox.isContentEditable && targetBox.tagName !== 'INPUT' && targetBox.tagName !== 'TEXTAREA')) {
+        if (hasTextSelectionBeforeRecover &&
+            (!targetBox || (!targetBox.isContentEditable && targetBox.tagName !== 'INPUT' && targetBox.tagName !== 'TEXTAREA'))) {
             if (typeof state !== 'undefined' && state.selectedEl) {
                 const innerText = state.selectedEl.querySelector('[contenteditable="true"]') || state.selectedEl.querySelector('.text-content');
                 if (innerText) {
@@ -753,51 +760,53 @@
         const sel = window.getSelection();
         const hasTextSelection = sel && sel.rangeCount > 0 && !sel.isCollapsed;
 
-        if (isTextEditing) {
-            if (hasTextSelection) {
-                const textToCopy = sel.toString();
-                state.copiedText = textToCopy;
+        // Only enter the text-copy path when the user ACTUALLY has text highlighted.
+        // Without this guard, selecting a text box and pressing Ctrl+C would find the
+        // inner contenteditable, set isTextEditing=true, then silently return because
+        // hasTextSelection is false - leaving the element never copied.
+        if (isTextEditing && hasTextSelection) {
+            const textToCopy = sel.toString();
+            state.copiedText = textToCopy;
+            
+            try {
+                const range = sel.getRangeAt(0);
+                const div = document.createElement('div');
+                div.appendChild(range.cloneContents());
+                let wrapperHtml = div.innerHTML;
                 
-                try {
-                    const range = sel.getRangeAt(0);
-                    const div = document.createElement('div');
-                    div.appendChild(range.cloneContents());
-                    let wrapperHtml = div.innerHTML;
-                    
-                    let node = range.commonAncestorContainer;
-                    if (node && node.nodeType === 3) node = node.parentNode;
-                    
-                    while (node && node !== document.body && node.getAttribute && node.getAttribute('contenteditable') !== 'true' && !node.classList.contains('text-content')) {
-                        const clone = node.cloneNode(false);
-                        clone.innerHTML = wrapperHtml;
-                        wrapperHtml = clone.outerHTML;
-                        node = node.parentNode;
-                    }
-                    
-                    state.copiedHtml = wrapperHtml;
-                } catch (err) {
-                    state.copiedHtml = null;
-                    console.warn("Failed to capture HTML copy in copyEl", err);
+                let node = range.commonAncestorContainer;
+                if (node && node.nodeType === 3) node = node.parentNode;
+                
+                while (node && node !== document.body && node.getAttribute && node.getAttribute('contenteditable') !== 'true' && !node.classList.contains('text-content')) {
+                    const clone = node.cloneNode(false);
+                    clone.innerHTML = wrapperHtml;
+                    wrapperHtml = clone.outerHTML;
+                    node = node.parentNode;
                 }
                 
-                state.copiedElements = [];
-                
-                try {
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        navigator.clipboard.writeText(textToCopy).catch(e => {
-                            document.execCommand(isCut ? 'cut' : 'copy');
-                        });
-                    } else {
+                state.copiedHtml = wrapperHtml;
+            } catch (err) {
+                state.copiedHtml = null;
+                console.warn("Failed to capture HTML copy in copyEl", err);
+            }
+            
+            state.copiedElements = [];
+            
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(textToCopy).catch(e => {
                         document.execCommand(isCut ? 'cut' : 'copy');
-                    }
-                } catch(e) {
+                    });
+                } else {
                     document.execCommand(isCut ? 'cut' : 'copy');
                 }
-                
-                if (isCut) {
-                    sel.deleteFromDocument();
-                    if (typeof pushHistory !== 'undefined') pushHistory();
-                }
+            } catch(e) {
+                document.execCommand(isCut ? 'cut' : 'copy');
+            }
+            
+            if (isCut) {
+                sel.deleteFromDocument();
+                if (typeof pushHistory !== 'undefined') pushHistory();
             }
             return;
         }
