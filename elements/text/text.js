@@ -436,6 +436,9 @@ function updateFloatToolbarValues() {
 
 
 function showFloatToolbar() {
+    if (document.body.classList.contains('dashboard-open')) return;
+    const dash = document.getElementById('dashboard-overlay');
+    if (dash && dash.style.display !== 'none' && dash.style.display !== '') return;
     if(!state.selectedEl) return;
     
     const el = state.selectedEl;

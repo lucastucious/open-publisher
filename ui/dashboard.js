@@ -93,6 +93,12 @@ window.DashboardSystem = {
     },
     
     show: function() {
+        document.body.classList.add('dashboard-open');
+        const ft = document.getElementById('float-toolbar');
+        if (ft) ft.style.display = 'none';
+        const wa = document.getElementById('wa-float-toolbar');
+        if (wa) wa.style.display = 'none';
+
         const overlay = document.getElementById('dashboard-overlay');
         overlay.style.display = 'flex';
         // Small delay to allow display:flex to apply before setting opacity for transition
@@ -104,6 +110,7 @@ window.DashboardSystem = {
     },
     
     hide: function() {
+        document.body.classList.remove('dashboard-open');
         const overlay = document.getElementById('dashboard-overlay');
         overlay.style.opacity = '0';
         setTimeout(() => {

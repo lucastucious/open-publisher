@@ -532,3 +532,9 @@ body.dark-mode .dashboard-scroll-btn:hover {
 .dashboard-scroll-right {
     right: -20px;
 }
+
+/* Hide floating toolbars when dashboard is open */
+body.dashboard-open #float-toolbar,
+body.dashboard-open #wa-float-toolbar {
+    display: none !important;
+}

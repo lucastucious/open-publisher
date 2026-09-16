@@ -1069,6 +1069,7 @@
 
     const floatBar = document.getElementById('float-toolbar');
     if (!floatBar) return;
+    floatBar.style.display = 'none';
 
     // --- 1. DOM PREPARATION ---
     // Detach critical dropdown elements to prevent reference errors before HTML replacement
