@@ -1,4 +1,36 @@
-function triggerUpload() { document.getElementById('img-upload').click(); }
+function triggerUpload() {
+    const input = document.getElementById('img-upload');
+    if (!input) return;
+    input.value = '';
+    input.click();
+}
+
+function triggerMultiImageUpload() {
+    const input = document.getElementById('img-upload-multi');
+    if (!input) return;
+    input.value = '';
+    input.click();
+}
+
+function toggleImageImportMenu(btn) {
+    const menu = document.getElementById('image-import-menu');
+    if (!menu) return;
+
+    const shouldOpen = menu.style.display !== 'block';
+    document.querySelectorAll('.dropdown-menu').forEach(el => {
+        if (el !== menu) el.style.display = 'none';
+    });
+
+    if (!shouldOpen) {
+        menu.style.display = 'none';
+        return;
+    }
+
+    const rect = btn.getBoundingClientRect();
+    menu.style.left = (rect.left + 4) + 'px';
+    menu.style.top = (rect.bottom + 8) + 'px';
+    menu.style.display = 'block';
+}
 
 document.getElementById('img-upload').addEventListener('change', (e) => {
     if(e.target.files[0]) {
@@ -7,6 +39,37 @@ document.getElementById('img-upload').addEventListener('change', (e) => {
             createWrapper(`<img src="${evt.target.result}">`);
         };
         reader.readAsDataURL(e.target.files[0]);
+        e.target.value = '';
+    }
+});
+
+document.getElementById('img-upload-multi').addEventListener('change', (e) => {
+    const files = Array.from(e.target.files || []).filter(file => file && file.type && file.type.startsWith('image/'));
+    if (!files.length) {
+        e.target.value = '';
+        return;
+    }
+
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            if (typeof createPageFromDroppedImage === 'function') {
+                createPageFromDroppedImage(evt.target.result, file.name);
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+
+    e.target.value = '';
+    const menu = document.getElementById('image-import-menu');
+    if (menu) menu.style.display = 'none';
+});
+
+window.addEventListener('click', (e) => {
+    const menu = document.getElementById('image-import-menu');
+    if (!menu) return;
+    if (!e.target.closest('#image-import-menu') && !e.target.closest('.image-import-trigger')) {
+        menu.style.display = 'none';
     }
 });
 
