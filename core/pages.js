@@ -269,6 +269,78 @@ function addNewPage() {
     }, 50);
 }
 
+function createPageFromDroppedImage(dataUrl, fileName) {
+    const currentPage = state.pages[state.currentPageIndex] || {
+        width: '794px',
+        height: '1123px',
+        background: '#ffffff'
+    };
+
+    const pageWidth = currentPage.width || '794px';
+    const pageHeight = currentPage.height || '1123px';
+    const pageW = parseFloat(pageWidth) || 794;
+    const pageH = parseFloat(pageHeight) || 1123;
+
+    const newPage = {
+        id: Date.now() + '-' + Math.random().toString(16).slice(2),
+        orientation: (pageW >= pageH) ? 'landscape' : 'portrait',
+        width: pageWidth,
+        height: pageHeight,
+        background: '#ffffff',
+        header: 'Header (Type here)',
+        footer: 'Footer (Type here)',
+        borderStyle: 'none',
+        elements: []
+    };
+
+    state.pages.push(newPage);
+    state.currentPageIndex = state.pages.length - 1;
+    renderPage(newPage);
+
+    const img = new Image();
+    img.onload = function() {
+        const maxW = Math.min(pageW * 0.72, 700);
+        const maxH = Math.min(pageH * 0.72, 900);
+        const scale = Math.min(maxW / Math.max(img.naturalWidth || 1, 1), maxH / Math.max(img.naturalHeight || 1, 1), 1);
+        const boxW = Math.max(80, (img.naturalWidth || 200) * scale);
+        const boxH = Math.max(80, (img.naturalHeight || 200) * scale);
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'pub-element';
+        wrapper.setAttribute('data-type', 'image');
+        wrapper.setAttribute('data-scaleX', '1');
+        wrapper.setAttribute('data-scaleY', '1');
+        wrapper.style.left = ((pageW - boxW) / 2) + 'px';
+        wrapper.style.top = ((pageH - boxH) / 2) + 'px';
+        wrapper.style.width = boxW + 'px';
+        wrapper.style.height = boxH + 'px';
+        wrapper.style.zIndex = '10';
+
+        const altText = (fileName || 'Dropped image').replace(/"/g, '&quot;');
+        wrapper.innerHTML = `
+            <div class="element-content" style="transform: scale(1, 1);">
+                <img src="${dataUrl}" alt="${altText}" style="width:100%; height:100%; object-fit:contain; display:block; pointer-events:none;">
+            </div>
+            <div class="resize-handle rh-nw" data-dir="nw"></div>
+            <div class="resize-handle rh-n" data-dir="n"></div>
+            <div class="resize-handle rh-ne" data-dir="ne"></div>
+            <div class="resize-handle rh-e" data-dir="e"></div>
+            <div class="resize-handle rh-se" data-dir="se"></div>
+            <div class="resize-handle rh-s" data-dir="s"></div>
+            <div class="resize-handle rh-sw" data-dir="sw"></div>
+            <div class="resize-handle rh-w" data-dir="w"></div>
+            <div class="rotate-stick"></div>
+            <div class="rotate-handle"></div>
+        `;
+
+        paper.appendChild(wrapper);
+        state.pages[state.currentPageIndex] = serializeCurrentPage();
+        updateSidebar();
+        pushHistory();
+    };
+    img.src = dataUrl;
+}
+
 function addMasterPage() {
     if (state.hasMasterPage) {
         switchPage(0);
@@ -452,8 +524,51 @@ function renderThumbnailHTML(pageData, pageIndex) {
 
 function updateSidebar() {
     const sb = document.getElementById('sidebar');
+    if (!sb) return;
+
     const btns = Array.from(sb.querySelectorAll('.page-add-btn'));
     sb.innerHTML = '';
+    sb.classList.remove('drag-over');
+
+    const handleSidebarImageDrop = (e) => {
+        const files = Array.from((e.dataTransfer && e.dataTransfer.files) || []);
+        const imageFiles = files.filter(file => file && file.type && file.type.startsWith('image/'));
+        if (imageFiles.length === 0) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        sb.classList.remove('drag-over');
+
+        imageFiles.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (evt) => createPageFromDroppedImage(evt.target.result, file.name);
+            reader.readAsDataURL(file);
+        });
+    };
+
+    sb.ondragenter = (e) => {
+        if (e.dataTransfer && Array.from(e.dataTransfer.files || []).some(file => file.type && file.type.startsWith('image/'))) {
+            e.preventDefault();
+            e.stopPropagation();
+            sb.classList.add('drag-over');
+        }
+    };
+
+    sb.ondragover = (e) => {
+        if (e.dataTransfer && Array.from(e.dataTransfer.files || []).some(file => file.type && file.type.startsWith('image/'))) {
+            e.preventDefault();
+            e.stopPropagation();
+            sb.classList.add('drag-over');
+        }
+    };
+
+    sb.ondragleave = (e) => {
+        if (!sb.contains(e.relatedTarget)) {
+            sb.classList.remove('drag-over');
+        }
+    };
+
+    sb.ondrop = handleSidebarImageDrop;
     
     // Re-inject toggle button if cleared
     if(!sb.querySelector('.sidebar-collapse-btn')) {
